@@ -20,6 +20,7 @@ import { WelcomePopup } from './WelcomePopup';
 import { KeyboardManagerContext, KeyboardOrder, useGlobalKeyboard } from '@/src/utils/keyboard';
 import { Resizer } from '../utils/Resizer';
 import { ModelSelectorToolbar } from './components/ModelSelectorToolbar';
+import { FractalP20Panel } from './components/FractalP20Panel';
 
 async function fetchTensorData(url: string): Promise<ITensorSet> {
     let resp = await fetch(url);
@@ -213,6 +214,7 @@ export function LayerView() {
                 </button>
             </div> */}
             <ModelSelectorToolbar />
+            <FractalP20Panel />
         </ProgramStateContext.Provider>}
     </div>;
 

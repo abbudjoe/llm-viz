@@ -38,6 +38,7 @@ export interface IProgramState {
     mainExample: IModelExample;
     examples: IModelExample[];
     currExampleId: number;
+    showP20Panel: boolean;
     shape: IModelShape;
     gptGpuModel: IGpuGptModel | null;
     jsGptModel: IGptModelLink | null;
@@ -153,6 +154,7 @@ export function initProgramState(canvasEl: HTMLCanvasElement, fontAtlasData: IFo
         shape: shape,
         layout: genGptModelLayout(shape),
         currExampleId: -1,
+        showP20Panel: false,
         mainExample: {
             name: 'nano-gpt',
             enabled: true,
