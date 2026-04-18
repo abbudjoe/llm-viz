@@ -44,7 +44,7 @@ function drawStateRailFlow(layout: IP20ModelLayout, state: IWalkthroughArgs['sta
     addLine(state.render.lineRender, 8, highwayColor, prev.add(lift), curr.add(lift));
     addLine(state.render.lineRender, 8, highwayColor, curr.add(lift), curr);
 
-    drawTextOnModel(state.render, 'shared state highway: s[t-1] -> s[t]', new Vec3(rail.x + rail.dx * 0.5, rail.y - layout.margin * 0.28, rail.z + rail.dz + 2), {
+    drawTextOnModel(state.render, 'state carry highway: s[t-1] is consumed, s[t] is stored', new Vec3(rail.x + rail.dx * 0.5, rail.y - layout.margin * 0.28, rail.z + rail.dz + 2), {
         color: highwayColor,
         size: 2.6,
         align: TextAlignHoriz.Center,
@@ -71,13 +71,13 @@ function drawStateHighwayUpdate(layout: IP20ModelLayout, state: IWalkthroughArgs
     addSourceDestCurveLine(state.render, layout, rail, block.mlpAct, new Vec3(prevTokenIdx, channelIdx, 0), new Vec3(channelIdx, tokenIdx, 0), stateIn);
     addSourceDestCurveLine(state.render, layout, block.mlpAct, rail, new Vec3(channelIdx, tokenIdx, 0), new Vec3(tokenIdx, channelIdx, 0), stateOut);
 
-    drawTextOnModel(state.render, 'read previous state', new Vec3(rail.x, rail.y - layout.margin * 0.54, rail.z + rail.dz + 1), {
+    drawTextOnModel(state.render, 'read carry s[t-1]', new Vec3(rail.x, rail.y - layout.margin * 0.54, rail.z + rail.dz + 1), {
         color: stateIn,
         size: 2.4,
         align: TextAlignHoriz.Left,
         valign: TextAlignVert.Bottom,
     });
-    drawTextOnModel(state.render, 'write updated state', new Vec3(rail.x + rail.dx, rail.y + rail.dy + layout.margin * 0.2, rail.z + rail.dz + 1), {
+    drawTextOnModel(state.render, 'write carry s[t]', new Vec3(rail.x + rail.dx, rail.y + rail.dy + layout.margin * 0.2, rail.z + rail.dz + 1), {
         color: stateOut,
         size: 2.2,
         align: TextAlignHoriz.Right,
@@ -172,9 +172,10 @@ rotary angles, candidate state values, and readout gates in one place.
     }
 
     commentary(wt)`
-Those projected controls update a recurrent state. The key distinction from the vanilla MLP is that the
-operation can carry information forward through a compact state, rather than treating every token column
-as a completely independent feed-forward calculation.
+Those projected controls update a recurrent state. The key distinction from the vanilla MLP is the carry:
+P20 reads the previous token's ${c_blockRef('s[t-1] state', stateRail ?? block.mlpAct)}, rotates it by the
+current token's angle, gate-mixes it with a fresh candidate, and writes the result back as s[t] for the
+next token.
 `;
     breakAfter();
 

@@ -15,7 +15,10 @@ let dimText = new Vec4(0.65, 0.78, 0.92, 1.0);
 let tokenColor = new Vec4(0.35, 0.76, 1.0, 0.95);
 let gateColor = new Vec4(0.35, 0.92, 0.56, 0.95);
 let thetaColor = new Vec4(1.0, 0.78, 0.26, 0.95);
-let stateColor = new Vec4(0.70, 0.52, 1.0, 0.95);
+let carryColor = new Vec4(0.34, 0.54, 1.0, 0.95);
+let rotatedColor = new Vec4(0.82, 0.63, 1.0, 0.95);
+let candidateColor = new Vec4(1.0, 0.72, 0.34, 0.95);
+let stateColor = new Vec4(1.0, 0.88, 0.18, 0.98);
 let readoutColor = new Vec4(1.0, 0.43, 0.43, 0.95);
 
 function maxVal(values: number[]) {
@@ -37,7 +40,7 @@ export function drawP20ToyScan(state: IProgramState, progress: number) {
 
     let mtx = new Mat4f();
     let width = 330;
-    let height = 238;
+    let height = 302;
     let margin = 18;
     let x = Math.max(20, state.render.size.x - width - 28);
     let y = 126;
@@ -55,7 +58,7 @@ export function drawP20ToyScan(state: IProgramState, progress: number) {
     let plotX = x + 86;
     let plotY = y + 68;
     let plotW = width - 110;
-    let rowH = 27;
+    let rowH = 24;
     let cellGap = 3;
     let cellW = (plotW - cellGap * (T - 1)) / T;
     let current = Math.min(T - 1, Math.max(0, Math.floor(progress * T)));
@@ -64,7 +67,10 @@ export function drawP20ToyScan(state: IProgramState, progress: number) {
         { label: 'x_t', values: trace.inputMean, scale: maxVal(trace.inputMean), color: tokenColor },
         { label: 'gate', values: trace.gateMean, scale: 1.0, color: gateColor },
         { label: 'theta', values: trace.thetaMean, scale: 0.8, color: thetaColor },
-        { label: 'state', values: trace.stateNorm, scale: maxVal(trace.stateNorm), color: stateColor },
+        { label: 'carry in', values: trace.prevStateNorm, scale: maxVal(trace.stateNorm), color: carryColor },
+        { label: 'rotate', values: trace.rotatedNorm, scale: maxVal(trace.stateNorm), color: rotatedColor },
+        { label: 'cand', values: trace.candidateNorm, scale: maxVal(trace.candidateNorm), color: candidateColor },
+        { label: 'new carry', values: trace.stateNorm, scale: maxVal(trace.stateNorm), color: stateColor },
         { label: 'readout', values: trace.readoutNorm, scale: maxVal(trace.readoutNorm), color: readoutColor },
     ];
 
@@ -96,6 +102,22 @@ export function drawP20ToyScan(state: IProgramState, progress: number) {
                 mtx,
             );
         }
+    }
+
+    function cellCenter(t: number, row: number) {
+        return new Vec3(
+            plotX + t * (cellW + cellGap) + cellW / 2,
+            plotY + row * rowH + 11,
+            0,
+        );
+    }
+
+    if (current > 0) {
+        let lineOpts = makeLineOpts({ color: stateColor, thick: 1.4, n: new Vec3(0, 0, 1), mtx });
+        addLine2(state.render.lineRender, cellCenter(current - 1, 6), cellCenter(current, 3), lineOpts);
+        addLine2(state.render.lineRender, cellCenter(current, 3), cellCenter(current, 4), makeLineOpts({ color: rotatedColor, thick: 1.0, n: new Vec3(0, 0, 1), mtx }));
+        addLine2(state.render.lineRender, cellCenter(current, 4), cellCenter(current, 6), lineOpts);
+        drawLabel(state, 'carry feeds next token update', plotX, y + height - 38, 10.5, stateColor);
     }
 
     let scanX = plotX + current * (cellW + cellGap) + cellW / 2;

@@ -19,6 +19,9 @@ export interface IP20ToyTrace {
     inputMean: number[];
     gateMean: number[];
     thetaMean: number[];
+    prevStateNorm: number[];
+    rotatedNorm: number[];
+    candidateNorm: number[];
     stateNorm: number[];
     readoutNorm: number[];
 }
@@ -48,6 +51,15 @@ function normRow(buf: Float32Array, row: number, width: number) {
     let sum = 0;
     for (let i = 0; i < width; i++) {
         let v = buf[row * width + i];
+        sum += v * v;
+    }
+    return Math.sqrt(sum / width);
+}
+
+function normVec(buf: Float32Array, width: number) {
+    let sum = 0;
+    for (let i = 0; i < width; i++) {
+        let v = buf[i];
         sum += v * v;
     }
     return Math.sqrt(sum / width);
@@ -128,12 +140,16 @@ export function createOrUpdateP20ToyRuntime(
         inputMean: [],
         gateMean: [],
         thetaMean: [],
+        prevStateNorm: [],
+        rotatedNorm: [],
+        candidateNorm: [],
         stateNorm: [],
         readoutNorm: [],
     };
 
     for (let t = 0; t < T; t++) {
         let controlBase = t * controlWidth;
+        trace.prevStateNorm.push(normVec(prevState, C));
 
         for (let c = 0; c < C; c += 2) {
             let theta0 = 0.8 * Math.tanh(controls[controlBase + C + c]);
@@ -177,6 +193,8 @@ export function createOrUpdateP20ToyRuntime(
         trace.inputMean.push(input.subarray(t * C, t * C + C).reduce((a, b) => a + Math.abs(b), 0) / C);
         trace.gateMean.push(gateSum / C);
         trace.thetaMean.push(thetaSum / C);
+        trace.rotatedNorm.push(normVec(rotated, C));
+        trace.candidateNorm.push(normVec(candidate, C));
         trace.stateNorm.push(normRow(stateUpdate, t, C));
         trace.readoutNorm.push(normRow(readout, t, C));
 

@@ -180,6 +180,10 @@ let workingSrcColor = new Vec4(0.3, 0.7, 0.3, 1);
 let opColor = new Vec4(0.9, 0.9, 0.9, 1);
 let backWhiteColor = new Vec4(0.0, 0.0, 0.0, 1).mul(1.0);
 let nameColor = new Vec4(1.0, 1.0, 1.0, 1);
+let p20CarryColor = new Vec4(0.34, 0.54, 1.0, 0.95);
+let p20RotatedColor = new Vec4(0.82, 0.63, 1.0, 0.95);
+let p20CandidateColor = new Vec4(1.0, 0.72, 0.34, 0.95);
+let p20StateColor = new Vec4(1.0, 0.88, 0.18, 0.98);
 let embedBlockHeight = 30;
 let tokEmbedBlockWidth = 40;
 let posEmbedBlockWidth = 35;
@@ -358,18 +362,36 @@ function drawP20StateUpdate(args: IDataFlowArgs) {
     let lane = Math.floor(destIdx.x / C);
     let label = lane === 0 ? 'state' : lane === 1 ? 'rotated prev' : lane === 2 ? 'candidate' : 'read-gated state';
     let fontOpts = { color: opColor, mtx, size: 14 };
-    let formula = lane === 0
-        ? 's_t = g * rotate(s_prev, theta) + (1-g) * cand'
+    let subs = lane === 0
+        ? [
+            { text: 'state: read ' },
+            { cellX: 1, cellY: 1, color: p20CarryColor },
+            { text: ' s[t-1], rotate -> ' },
+            { cellX: 1, cellY: 1, color: p20RotatedColor },
+            { text: ', gate-mix with cand ' },
+            { cellX: 1, cellY: 1, color: p20CandidateColor },
+            { text: ' -> write ' },
+            { cellX: 1, cellY: 1, color: p20StateColor },
+            { text: ' s[t] carry' },
+        ]
         : lane === 1
-        ? 'rotate prior state by token angle theta'
+        ? [
+            { text: `${label}: rotate ` },
+            { cellX: 1, cellY: 1, color: p20CarryColor },
+            { text: ' s[t-1] by token angle theta' },
+        ]
         : lane === 2
-        ? 'cand = tanh(candidate slot)'
-        : 'emit = read_gate * s_t';
+        ? [
+            { text: `${label}: tanh(candidate slot) makes fresh state proposal` },
+        ]
+        : [
+            { text: `${label}: read_gate * ` },
+            { cellX: 1, cellY: 1, color: p20StateColor },
+            { text: ' s[t] for residual readout' },
+        ];
     let textBlock = mkTextBlock({
         opts: fontOpts,
-        subs: [
-            { text: `${label}: ${formula}` },
-        ],
+        subs,
     });
     return drawMaths(args, center, textBlock, [7, 7, 7, 7]);
 }
