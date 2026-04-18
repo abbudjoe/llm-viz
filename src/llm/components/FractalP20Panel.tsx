@@ -13,8 +13,7 @@ const flowSteps = [
 
 export const FractalP20Panel: React.FC = () => {
     let progState = useProgramState();
-    let selectedExample = progState.examples[progState.currExampleId];
-    let isP20Selected = selectedExample?.variant === 'p20';
+    let isP20Selected = progState.walkthroughVariant === 'p20';
 
     if (!isP20Selected) {
         return null;

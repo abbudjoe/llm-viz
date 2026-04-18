@@ -19,6 +19,7 @@ import { walkthrough06_Projection } from "./Walkthrough06_Projection";
 import { walkthrough07_Mlp } from "./Walkthrough07_Mlp";
 import { walkthrough08_Transformer } from "./Walkthrough08_Transformer";
 import { walkthrough09_Output } from "./Walkthrough09_Output";
+import { walkthrough10_P20 } from "./Walkthrough10_P20";
 
 
 /**
@@ -64,6 +65,32 @@ Thoughts about the walkthrough:
 
 
 export type IWalkthrough = ReturnType<typeof initWalkthrough>;
+export type WalkthroughVariant = 'nanogpt' | 'p20';
+
+export function getWalkthroughPhaseList(variant: WalkthroughVariant): IPhaseGroup[] {
+    return [{
+        groupId: PhaseGroup.Intro,
+        title: 'Introduction',
+        phases: [
+            { id: Phase.Intro_Intro, title: variant === 'p20' ? 'P20 Overview' : 'Overview' },
+            { id: Phase.Intro_Prelim, title: 'Preliminary' },
+        ],
+    }, {
+        groupId: PhaseGroup.Detailed_Input,
+        title: 'Detailed',
+        phases: [
+            { id: Phase.Input_Detail_Embedding, title: 'Embedding' },
+            { id: Phase.Input_Detail_LayerNorm, title: 'Layer Norm' },
+            { id: Phase.Input_Detail_SelfAttention, title: 'Self Attention' },
+            { id: Phase.Input_Detail_Projection, title: 'Projection' },
+            { id: Phase.Input_Detail_Mlp, title: variant === 'p20' ? 'FFN Seam' : 'MLP' },
+            ...(variant === 'p20' ? [{ id: Phase.P20_Detail_RecurrentControl, title: 'P20 Control' }] : []),
+            { id: Phase.Input_Detail_Transformer, title: variant === 'p20' ? 'Hybrid Block' : 'Transformer' },
+            { id: Phase.Input_Detail_Softmax, title: 'Softmax' },
+            { id: Phase.Input_Detail_Output, title: 'Output' },
+        ],
+    }] as IPhaseGroup[];
+}
 
 export function initWalkthrough() {
     return {
@@ -83,27 +110,7 @@ export function initWalkthrough() {
         markDirty: () => { }, // bit of a hack to get it to WalkthroughSidebar
         phaseData: new Map<Phase, any>(),
         phaseTransitiveData: null as any,
-        phaseList: [{
-            groupId: PhaseGroup.Intro,
-            title: 'Introduction',
-            phases: [
-                { id: Phase.Intro_Intro, title: 'Overview' },
-                { id: Phase.Intro_Prelim, title: 'Preliminary' },
-            ],
-        }, {
-            groupId: PhaseGroup.Detailed_Input,
-            title: 'Detailed',
-            phases: [
-                { id: Phase.Input_Detail_Embedding, title: 'Embedding' },
-                { id: Phase.Input_Detail_LayerNorm, title: 'Layer Norm' },
-                { id: Phase.Input_Detail_SelfAttention, title: 'Self Attention' },
-                { id: Phase.Input_Detail_Projection, title: 'Projection' },
-                { id: Phase.Input_Detail_Mlp, title: 'MLP' },
-                { id: Phase.Input_Detail_Transformer, title: 'Transformer' },
-                { id: Phase.Input_Detail_Softmax, title: 'Softmax' },
-                { id: Phase.Input_Detail_Output, title: 'Output' },
-            ],
-        }] as IPhaseGroup[],
+        phaseList: getWalkthroughPhaseList('nanogpt'),
     };
 }
 
@@ -132,6 +139,7 @@ export enum Phase {
     Input_Detail_Softmax,
     Input_Detail_Projection,
     Input_Detail_Mlp,
+    P20_Detail_RecurrentControl,
     Input_Detail_Transformer,
     Input_Detail_Output,
 }
@@ -143,6 +151,12 @@ export function phaseToGroup(wt: IWalkthrough) {
 
 export function runWalkthrough(state: IProgramState, view: IRenderView) {
     let wt = state.walkthrough;
+    wt.phaseList = getWalkthroughPhaseList(state.walkthroughVariant);
+    if (!phaseToGroup(wt)) {
+        wt.phase = Phase.Intro_Intro;
+        wt.time = 0;
+        wt.running = false;
+    }
     wt.viewDt = view.dt;
 
     if (wt.running) {
@@ -183,6 +197,7 @@ export function runWalkthrough(state: IProgramState, view: IRenderView) {
         walkthrough05_Softmax(wtArgs);
         walkthrough06_Projection(wtArgs);
         walkthrough07_Mlp(wtArgs);
+        walkthrough10_P20(wtArgs);
         walkthrough08_Transformer(wtArgs);
         walkthrough09_Output(wtArgs);
     }

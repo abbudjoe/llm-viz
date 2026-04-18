@@ -40,6 +40,8 @@ export interface IProgramState {
     examples: IModelExample[];
     currExampleId: number;
     showP20Panel: boolean;
+    walkthroughVariant: 'nanogpt' | 'p20';
+    p20Camera: ICameraPos;
     shape: IModelShape;
     gptGpuModel: IGpuGptModel | null;
     jsGptModel: IGptModelLink | null;
@@ -140,19 +142,12 @@ export function initProgramState(canvasEl: HTMLCanvasElement, fontAtlasData: IFo
         vocabSize: 50257,
     };
 
-    let p20Shape: IModelShape = {
-        B: 1,
-        T: 1024,
-        C: 192,
-        nHeads: 3,
-        A: 64,
-        nBlocks: 16,
-        vocabSize: 4096,
-    };
-
     function makeCamera(center: Vec3, angle: Vec3): ICameraPos {
         return { center, angle };
     }
+
+    let nanoCamera = makeCamera(new Vec3(42.771, 0.000, -569.287), new Vec3(284.959, 26.501, 12.867));
+    let p20Camera = makeCamera(new Vec3(-16.000, 0.000, -585.000), new Vec3(291.000, 19.000, 9.600));
 
     let delta = new Vec3(10000, 0, 0);
 
@@ -167,6 +162,8 @@ export function initProgramState(canvasEl: HTMLCanvasElement, fontAtlasData: IFo
         layout: genGptModelLayout(shape),
         currExampleId: -1,
         showP20Panel: false,
+        walkthroughVariant: 'nanogpt',
+        p20Camera,
         mainExample: {
             name: 'nano-gpt',
             enabled: true,
@@ -174,7 +171,7 @@ export function initProgramState(canvasEl: HTMLCanvasElement, fontAtlasData: IFo
             offset: new Vec3(),
             modelCardOffset: new Vec3(),
             blockRender: null!,
-            camera: makeCamera(new Vec3(42.771, 0.000, -569.287), new Vec3(284.959, 26.501, 12.867)),
+            camera: nanoCamera,
         },
         examples: [{
             name: 'GPT-2 (small)',
@@ -200,15 +197,6 @@ export function initProgramState(canvasEl: HTMLCanvasElement, fontAtlasData: IFo
             modelCardOffset: delta.mul(15.0),
             blockRender: initBlockRender(render?.ctx ?? null),
             camera: makeCamera(new Vec3(837678.163, 0.000, -485242.286), new Vec3(238.959, 10.501, 12583.939)),
-        }, {
-            name: 'Fractal P20',
-            enabled: true,
-            variant: 'p20',
-            shape: p20Shape,
-            offset: delta.mul(35.0),
-            modelCardOffset: delta.mul(0.5),
-            blockRender: initBlockRender(render?.ctx ?? null),
-            camera: makeCamera(new Vec3(383500.000, 0.000, -58000.000), new Vec3(298.000, 21.500, 980.000)),
         }],
         gptGpuModel: null,
         jsGptModel: null,
@@ -267,7 +255,9 @@ export function runProgram(view: IRenderView, state: IProgramState) {
     }
 
     // generate the base model, incorporating the gpu-side model if available
-    state.layout = genGptModelLayout(state.shape, state.jsGptModel);
+    state.layout = state.walkthroughVariant === 'p20'
+        ? genP20ModelLayout(state.shape, state.jsGptModel)
+        : genGptModelLayout(state.shape, state.jsGptModel);
 
     // @TODO: handle different models in the same scene.
     // Maybe need to copy a lot of different things like the entire render state per model?
@@ -300,7 +290,7 @@ export function runProgram(view: IRenderView, state: IProgramState) {
     // these will get modified by the walkthrough (stored where?)
     drawAllArrows(state.render, state.layout);
 
-    drawModelCard(state, state.layout, 'nano-gpt', new Vec3());
+    drawModelCard(state, state.layout, state.walkthroughVariant === 'p20' ? 'Fractal P20' : 'nano-gpt', new Vec3());
     // drawTokens(state.render, state.layout, state.display);
 
     for (let example of state.examples) {

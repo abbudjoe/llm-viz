@@ -58,7 +58,12 @@ export function walkthroughIntro(args: IWalkthroughArgs) {
 
     setInitialCamera(state, new Vec3(184.744, 0.000, -636.820), new Vec3(296.000, 16.000, 13.500));
 
-    let c0 = commentary(wt, null, 0)`Welcome to the walkthrough of the GPT large language model! Here we'll explore the model _nano-gpt_, with a mere 85,000 parameters.
+    let c0 = state.walkthroughVariant === 'p20'
+        ? commentary(wt, null, 0)`Welcome to the P20 walkthrough! This view keeps the same toy browser task as _nano-gpt_, but uses it to show where a rotary gated recurrent state update primitive fits inside a transformer-shaped language model.
+
+Its goal is still simple: take a sequence of six letters: ${embed(ExampleInputOutput)}
+and sort them in alphabetical order, i.e. to "ABBBCC". That shared task makes the architectural difference easier to see.`
+        : commentary(wt, null, 0)`Welcome to the walkthrough of the GPT large language model! Here we'll explore the model _nano-gpt_, with a mere 85,000 parameters.
 
 Its goal is a simple one: take a sequence of six letters: ${embed(ExampleInputOutput)}
 and sort them in alphabetical order, i.e. to "ABBBCC".`;
@@ -166,7 +171,11 @@ and sort them in alphabetical order, i.e. to "ABBBCC".`;
     }
 
     breakAfter();
-    commentary(wt)`The embedding is then passed through the model, going through a series of layers, called transformers, before reaching the bottom.`;
+    if (state.walkthroughVariant === 'p20') {
+        commentary(wt)`The embedding is then passed through a transformer-like shell. The attention, residual stream, layer norms, and output head remain familiar; the P20 difference appears at the feed-forward seam, where a compact recurrent state update replaces the plain MLP-style computation.`;
+    } else {
+        commentary(wt)`The embedding is then passed through the model, going through a series of layers, called transformers, before reaching the bottom.`;
+    }
     breakAfter();
 
     {

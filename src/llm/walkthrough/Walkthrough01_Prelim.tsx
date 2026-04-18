@@ -18,7 +18,26 @@ export function walkthrough01_Prelim(args: IWalkthroughArgs) {
 
     setInitialCamera(state, new Vec3(184.744, 0.000, -636.820), new Vec3(296.000, 16.000, 13.500));
 
-    let c0 = commentary(wt, null, 0)`
+    if (state.walkthroughVariant === 'p20') {
+        commentary(wt, null, 0)`
+Before we delve into the P20-specific seam, let's level-set the comparison.
+
+P20 is deliberately close to nanoGPT at the outside: token embeddings, positional information,
+layer normalization, causal self-attention, residual additions, final normalization, and the language-model
+head all remain transformer-shaped.
+
+The ablation is narrower than "replace the transformer." It asks whether the feed-forward side of selected
+blocks can be made more stateful by using a small rotary gated recurrent update primitive. That primitive
+receives the residual vector, creates gates / angles / candidates with a packed projection, updates a compact
+state, and writes a readout back into the residual stream.
+
+So as you move through the chapters, most steps are shared with nanoGPT. The chapter named "P20 Control"
+is where the new primitive appears.
+`;
+        return;
+    }
+
+    commentary(wt, null, 0)`
 Before we delve into the algorithm's intricacies, let's take a brief step back.
 
 This guide focuses on _inference_, not training, and as such is only a small part of the entire machine-learning process.

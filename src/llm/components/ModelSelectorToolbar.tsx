@@ -21,20 +21,30 @@ export const ModelSelectorToolbar: React.FC<{
             if (!isEnabled) {
                 example.enabled = true;
             }
+            progState.walkthroughVariant = 'nanogpt';
             progState.showP20Panel = false;
             progState.currExampleId = egIndex;
             progState.camera.desiredCamera = example.camera;
             progState.markDirty();
         }
 
-        return <div className={clsx('m-2 p-2 rounded shadow cursor-pointer hover:bg-blue-300', isActive ? 'bg-blue-200' : 'bg-white')} onClick={handleClick}>
+        return <div className={clsx('m-2 p-2 rounded shadow cursor-pointer hover:bg-blue-300', isActive && progState.walkthroughVariant === 'nanogpt' ? 'bg-blue-200' : 'bg-white')} onClick={handleClick}>
             {example.name}
         </div>;
     }
 
+    function handleP20Click() {
+        progState.walkthroughVariant = 'p20';
+        progState.showP20Panel = false;
+        progState.currExampleId = -1;
+        progState.camera.desiredCamera = progState.p20Camera;
+        progState.markDirty();
+    }
+
     function onExpandClick() {
-        let example = progState.examples[progState.currExampleId] ?? progState.mainExample;
-        progState.camera.desiredCamera = example.camera;
+        progState.camera.desiredCamera = progState.walkthroughVariant === 'p20'
+            ? progState.p20Camera
+            : (progState.examples[progState.currExampleId] ?? progState.mainExample).camera;
         progState.markDirty();
     }
 
@@ -65,7 +75,12 @@ export const ModelSelectorToolbar: React.FC<{
             {makeButton(-1)}
             {makeButton(1)}
             {makeButton(2)}
-            {makeButton(3)}
+            <div
+                className={clsx('m-2 p-2 rounded shadow cursor-pointer hover:bg-blue-300', progState.walkthroughVariant === 'p20' ? 'bg-blue-200' : 'bg-white')}
+                onClick={handleP20Click}
+            >
+                Fractal P20
+            </div>
         </div>
         <div className='ml-2 flex flex-row'>
             <div className={clsx('m-2 p-2 bg-white min-w-[2rem] flex justify-center rounded shadow cursor-pointer hover:bg-blue-300')} onClick={onExpandClick}>

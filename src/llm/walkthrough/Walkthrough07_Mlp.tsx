@@ -22,6 +22,34 @@ export function walkthrough07_Mlp(args: IWalkthroughArgs) {
     setInitialCamera(state, new Vec3(-154.755, 0.000, -460.042), new Vec3(289.100, -8.900, 2.298));
     wt.dimHighlightBlocks = [block.ln2.lnResid, block.mlpAct, block.mlpFc, block.mlpFcBias, block.mlpFcWeight, block.mlpProjBias, block.mlpProjWeight, block.mlpResult, block.mlpResidual];
 
+    if (state.walkthroughVariant === 'p20') {
+        commentary(wt)`
+
+This is the feed-forward seam. In nanoGPT, this section is a standard two-layer MLP: expand the vector,
+apply GELU, and project it back to the residual width.
+
+In the P20 walkthrough, we keep this chapter as the comparison point. The visual blocks in the middle
+scaffold are the places where the P20 primitive plugs in: the packed projection creates gates, angles,
+candidate state, and readout controls, rather than only feeding a GELU MLP.
+`;
+        breakAfter();
+
+        let t0_focus = afterTime(null, 1.5, 0.4);
+        if (t0_focus.active) {
+            for (let cube of wt.dimHighlightBlocks) {
+                cube.highlight = Math.max(cube.highlight, 0.8 * t0_focus.t);
+            }
+            block.mlpLabel.visible = t0_focus.t;
+        }
+
+        commentary(wt)`
+The next chapter zooms into the P20-specific update. The important thing here is the architectural
+placement: P20 is not changing tokenization, self-attention, softmax, or the output head. It is changing
+what happens where a transformer normally spends parameters on per-token feed-forward computation.
+`;
+        return;
+    }
+
     commentary(wt)`
 
 The next half of the transformer block, after the self-attention, is the MLP (multi-layer
