@@ -94,12 +94,20 @@ function retitleRecurrentSlot(block: IGptModelLayout['blocks'][number], toy?: IP
     }
 }
 
-function makeStateRail(layout: IGptModelLayout, block: IGptModelLayout['blocks'][number], idx: number): IBlkDef {
+export type IP20ModelLayout = IGptModelLayout & {
+    p20StateRails?: IBlkDef[];
+};
+
+function makeStateRail(
+    layout: IGptModelLayout,
+    block: IGptModelLayout['blocks'][number],
+    idx: number,
+    toy?: IP20ToyRuntime | null,
+): IBlkDef {
     let top = block.ln1.lnResid.y;
-    let bottom = block.mlpResidual.y + block.mlpResidual.dy;
-    let railCellsY = Math.max(1, Math.round((bottom - top) / layout.cell));
-    let railCellsX = 3;
-    let railCellsZ = Math.max(2, Math.round(layout.shape.B + 1));
+    let railCellsX = toy ? layout.shape.T : 3;
+    let railCellsY = toy ? layout.shape.C : Math.max(1, Math.round((block.mlpResidual.y + block.mlpResidual.dy - top) / layout.cell));
+    let railCellsZ = Math.max(1, layout.shape.B);
 
     return cloneVisualBlock(block.mlpResidual, {
         t: 'i',
@@ -113,8 +121,9 @@ function makeStateRail(layout: IGptModelLayout, block: IGptModelLayout['blocks']
         cx: railCellsX,
         cy: railCellsY,
         cz: railCellsZ,
-        dimX: DimStyle.C,
-        dimY: DimStyle.n_layers,
+        access: toy ? makeAccess(toy.stateUpdate, [0, 1, 0], [1, 0, 0], 2.1) : undefined,
+        dimX: toy ? DimStyle.T : DimStyle.C,
+        dimY: toy ? DimStyle.C : DimStyle.n_layers,
         highlight: 1.0,
         opacity: 0.92,
         small: false,
@@ -128,7 +137,7 @@ function applyP20VisualTreatment(layout: IGptModelLayout, toy?: IP20ToyRuntime |
 
     let stateRails = p20Blocks.map((block, i) => {
         retitleRecurrentSlot(block, toy);
-        return makeStateRail(layout, block, i);
+        return makeStateRail(layout, block, i, toy);
     });
 
     for (let block of layout.blocks.slice(0, p20Start)) {
@@ -140,6 +149,7 @@ function applyP20VisualTreatment(layout: IGptModelLayout, toy?: IP20ToyRuntime |
     }
 
     layout.cubes.push(...stateRails);
+    (layout as IP20ModelLayout).p20StateRails = stateRails;
     layout.cubes.forEach((cube, idx) => {
         cube.idx = idx;
     });
@@ -153,5 +163,5 @@ export function genP20ModelLayout(
 ) {
     let layout = genGptModelLayout(shape, gptGpuModel, offset);
     applyP20VisualTreatment(layout, toy);
-    return layout;
+    return layout as IP20ModelLayout;
 }
