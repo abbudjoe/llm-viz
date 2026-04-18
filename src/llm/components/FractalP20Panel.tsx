@@ -1,6 +1,7 @@
 import React from 'react';
 import s from './FractalP20Panel.module.scss';
 import { useProgramState } from '../Sidebar';
+import clsx from 'clsx';
 
 const flowSteps = [
     'Prelude transformer blocks convert visible tokens into residual-stream features.',
@@ -12,32 +13,32 @@ const flowSteps = [
 
 export const FractalP20Panel: React.FC = () => {
     let progState = useProgramState();
+    let selectedExample = progState.examples[progState.currExampleId];
+    let isP20Selected = selectedExample?.variant === 'p20';
 
-    if (!progState.showP20Panel) {
+    if (!isP20Selected) {
         return null;
     }
 
-    function closePanel() {
-        progState.showP20Panel = false;
+    function togglePanel() {
+        progState.showP20Panel = !progState.showP20Panel;
         progState.markDirty();
     }
 
-    return <aside className={s.panel} aria-label="Fractal P20 recurrent-control model panel">
-        <header className={s.header}>
+    return <aside className={clsx(s.panel, !progState.showP20Panel && s.collapsed)} aria-label="Fractal P20 recurrent-control model panel">
+        <button className={s.headerButton} onClick={togglePanel} aria-expanded={progState.showP20Panel}>
             <div>
                 <p className={s.eyebrow}>Fractal research lane</p>
                 <h2 className={s.title}>P20: rotary gated recurrent state update</h2>
             </div>
-            <button className={s.closeButton} onClick={closePanel} aria-label="Close Fractal P20 panel">
-                x
-            </button>
-        </header>
+            <span className={s.toggleHint}>{progState.showP20Panel ? 'Hide explainer' : 'Show explainer'}</span>
+        </button>
 
-        <div className={s.body}>
+        {progState.showP20Panel && <div className={s.body}>
             <p className={s.lead}>
-                This panel sketches our current proof-ladder LLM. It keeps transformer attention in
-                the model, but adds a small recurrent control primitive that acts like an efficient
-                depth substitute inside a looped middle scaffold.
+                The canvas now shows P20 as its own 3D architecture: transformer attention remains
+                visible, while the highlighted middle scaffold swaps the vanilla MLP-side work for
+                a rotary gated recurrent state update and shared state highway.
             </p>
 
             <section className={s.section}>
@@ -81,6 +82,6 @@ o_t = gate(r_t) * s_t`}</pre>
                 recurrent control plus looped middle attention looks promising enough to justify a
                 30M-50M parameter GPU-grant follow-up.
             </p>
-        </div>
+        </div>}
     </aside>;
 };

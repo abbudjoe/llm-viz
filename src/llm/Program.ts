@@ -4,6 +4,7 @@ import { drawBlockLabels } from "./components/SectionLabels";
 import { drawModelCard } from "./components/ModelCard";
 import { IGptModelLink, IGpuGptModel, IModelShape } from "./GptModel";
 import { genGptModelLayout, IBlkDef, IGptModelLayout } from "./GptModelLayout";
+import { genP20ModelLayout } from "./P20ModelLayout";
 import { drawText, IFontAtlasData, IFontOpts, measureText } from "./render/fontRender";
 import { initRender, IRenderState, IRenderView, renderModel, resetRenderBuffers } from "./render/modelRender";
 import { beginQueryAndGetPrevMs, endQuery } from "./render/queryManager";
@@ -52,6 +53,7 @@ export interface IModelExample {
     name: string;
     shape: IModelShape;
     enabled: boolean;
+    variant?: 'gpt' | 'p20';
     layout?: IGptModelLayout;
     blockRender: IBlockRender;
     offset: Vec3;
@@ -138,6 +140,16 @@ export function initProgramState(canvasEl: HTMLCanvasElement, fontAtlasData: IFo
         vocabSize: 50257,
     };
 
+    let p20Shape: IModelShape = {
+        B: 1,
+        T: 1024,
+        C: 192,
+        nHeads: 3,
+        A: 64,
+        nBlocks: 16,
+        vocabSize: 4096,
+    };
+
     function makeCamera(center: Vec3, angle: Vec3): ICameraPos {
         return { center, angle };
     }
@@ -188,6 +200,15 @@ export function initProgramState(canvasEl: HTMLCanvasElement, fontAtlasData: IFo
             modelCardOffset: delta.mul(15.0),
             blockRender: initBlockRender(render?.ctx ?? null),
             camera: makeCamera(new Vec3(837678.163, 0.000, -485242.286), new Vec3(238.959, 10.501, 12583.939)),
+        }, {
+            name: 'Fractal P20',
+            enabled: true,
+            variant: 'p20',
+            shape: p20Shape,
+            offset: delta.mul(35.0),
+            modelCardOffset: delta.mul(0.5),
+            blockRender: initBlockRender(render?.ctx ?? null),
+            camera: makeCamera(new Vec3(383500.000, 0.000, -58000.000), new Vec3(298.000, 21.500, 980.000)),
         }],
         gptGpuModel: null,
         jsGptModel: null,
@@ -252,7 +273,9 @@ export function runProgram(view: IRenderView, state: IProgramState) {
     // Maybe need to copy a lot of different things like the entire render state per model?
     for (let example of state.examples) {
         if (example.enabled && !example.layout) {
-            let layout = genGptModelLayout(example.shape, null, example.offset);
+            let layout = example.variant === 'p20'
+                ? genP20ModelLayout(example.shape, null, example.offset)
+                : genGptModelLayout(example.shape, null, example.offset);
             example.layout = layout;
         }
     }

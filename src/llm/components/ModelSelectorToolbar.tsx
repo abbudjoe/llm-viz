@@ -27,24 +27,12 @@ export const ModelSelectorToolbar: React.FC<{
             progState.markDirty();
         }
 
-        return <div className={clsx('m-2 p-2 rounded shadow cursor-pointer hover:bg-blue-300', isActive && !progState.showP20Panel ? 'bg-blue-200' : 'bg-white')} onClick={handleClick}>
+        return <div className={clsx('m-2 p-2 rounded shadow cursor-pointer hover:bg-blue-300', isActive ? 'bg-blue-200' : 'bg-white')} onClick={handleClick}>
             {example.name}
         </div>;
     }
 
-    function handleP20Click() {
-        progState.showP20Panel = true;
-        progState.currExampleId = -1;
-        progState.camera.desiredCamera = progState.mainExample.camera;
-        progState.markDirty();
-    }
-
     function onExpandClick() {
-        if (progState.showP20Panel) {
-            progState.camera.desiredCamera = progState.mainExample.camera;
-            progState.markDirty();
-            return;
-        }
         let example = progState.examples[progState.currExampleId] ?? progState.mainExample;
         progState.camera.desiredCamera = example.camera;
         progState.markDirty();
@@ -77,12 +65,7 @@ export const ModelSelectorToolbar: React.FC<{
             {makeButton(-1)}
             {makeButton(1)}
             {makeButton(2)}
-            <div
-                className={clsx('m-2 p-2 rounded shadow cursor-pointer hover:bg-blue-300', progState.showP20Panel ? 'bg-blue-200' : 'bg-white')}
-                onClick={handleP20Click}
-            >
-                Fractal P20
-            </div>
+            {makeButton(3)}
         </div>
         <div className='ml-2 flex flex-row'>
             <div className={clsx('m-2 p-2 bg-white min-w-[2rem] flex justify-center rounded shadow cursor-pointer hover:bg-blue-300')} onClick={onExpandClick}>
