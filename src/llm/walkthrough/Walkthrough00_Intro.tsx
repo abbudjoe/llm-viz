@@ -59,7 +59,9 @@ export function walkthroughIntro(args: IWalkthroughArgs) {
     setInitialCamera(state, new Vec3(184.744, 0.000, -636.820), new Vec3(296.000, 16.000, 13.500));
 
     let c0 = state.walkthroughVariant === 'p20'
-        ? commentary(wt, null, 0)`Welcome to the P20 walkthrough! This view keeps the same toy browser task as _nano-gpt_, but uses it to show where a rotary gated recurrent state update primitive fits inside a transformer-shaped language model.
+        ? commentary(wt, null, 0)`Welcome to the P20 walkthrough! This view deliberately keeps the same toy browser task and nanoGPT-scale geometry, but uses it to show where a rotary gated recurrent state update primitive fits inside a transformer-shaped language model.
+
+That means the 3D stack is a teaching diagram, not a parameter-scale rendering of the 9.87M-parameter Fractal research run.
 
 Its goal is still simple: take a sequence of six letters: ${embed(ExampleInputOutput)}
 and sort them in alphabetical order, i.e. to "ABBBCC". That shared task makes the architectural difference easier to see.`

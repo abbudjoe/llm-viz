@@ -29,15 +29,18 @@ export const FractalP20Panel: React.FC = () => {
             <div>
                 <p className={s.eyebrow}>Fractal research lane</p>
                 <h2 className={s.title}>P20: rotary gated recurrent state update</h2>
+                <p className={s.scaleNote}>Toy geometry. Research result is 9.87M params.</p>
             </div>
             <span className={s.toggleHint}>{progState.showP20Panel ? 'Hide explainer' : 'Show explainer'}</span>
         </button>
 
         {progState.showP20Panel && <div className={s.body}>
             <p className={s.lead}>
-                The canvas now shows P20 as its own 3D architecture: transformer attention remains
-                visible, while the highlighted middle scaffold swaps the vanilla MLP-side work for
-                a rotary gated recurrent state update and shared state highway.
+                The canvas shows a nanoGPT-scale teaching layout so the original chapter animations
+                still work. It is not a to-scale rendering of the 9.87M-parameter Fractal run. The
+                important visual claim is architectural placement: transformer attention remains visible,
+                while the highlighted middle scaffold swaps vanilla MLP-side work for a rotary gated
+                recurrent state update and shared state highway.
             </p>
 
             <section className={s.section}>
@@ -63,7 +66,7 @@ o_t = gate(r_t) * s_t`}</pre>
                 <div className={s.metrics}>
                     <div className={s.metric}>
                         <strong>9.87M</strong>
-                        <span>parameter tiny-LM recurrent-control scaffold</span>
+                        <span>research-lane model size, not this toy canvas scale</span>
                     </div>
                     <div className={s.metric}>
                         <strong>14L band</strong>

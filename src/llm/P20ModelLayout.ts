@@ -4,8 +4,6 @@ import { IGptModelLink, IModelShape } from "./GptModel";
 import { genGptModelLayout, IBlkDef, IGptModelLayout } from "./GptModelLayout";
 import { DimStyle } from "./walkthrough/WalkthroughTools";
 
-const P20_WEIGHT_COUNT = 9_870_000;
-
 function cloneVisualBlock(base: IBlkDef, overrides: Partial<IBlkDef>): IBlkDef {
     return {
         ...base,
@@ -81,8 +79,6 @@ function makeStateRail(layout: IGptModelLayout, block: IGptModelLayout['blocks']
 }
 
 function applyP20VisualTreatment(layout: IGptModelLayout) {
-    layout.weightCount = P20_WEIGHT_COUNT;
-
     let p20Start = Math.max(1, Math.floor(layout.blocks.length * 0.25));
     let p20End = Math.max(p20Start + 1, Math.ceil(layout.blocks.length * 0.75));
     let p20Blocks = layout.blocks.slice(p20Start, p20End);

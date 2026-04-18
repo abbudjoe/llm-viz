@@ -290,7 +290,7 @@ export function runProgram(view: IRenderView, state: IProgramState) {
     // these will get modified by the walkthrough (stored where?)
     drawAllArrows(state.render, state.layout);
 
-    drawModelCard(state, state.layout, state.walkthroughVariant === 'p20' ? 'Fractal P20' : 'nano-gpt', new Vec3());
+    drawModelCard(state, state.layout, state.walkthroughVariant === 'p20' ? 'P20 seam demo' : 'nano-gpt', new Vec3());
     // drawTokens(state.render, state.layout, state.display);
 
     for (let example of state.examples) {

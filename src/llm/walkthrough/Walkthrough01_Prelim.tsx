@@ -26,6 +26,10 @@ P20 is deliberately close to nanoGPT at the outside: token embeddings, positiona
 layer normalization, causal self-attention, residual additions, final normalization, and the language-model
 head all remain transformer-shaped.
 
+This visualization keeps the tiny nanoGPT dimensions so the original chapter-by-chapter animations remain
+usable. The real Fractal P20 result we have been discussing is around 9.87M parameters; this browser scene
+is showing the insertion contract, not the full parameter scale.
+
 The ablation is narrower than "replace the transformer." It asks whether the feed-forward side of selected
 blocks can be made more stateful by using a small rotary gated recurrent update primitive. That primitive
 receives the residual vector, creates gates / angles / candidates with a packed projection, updates a compact
