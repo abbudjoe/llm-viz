@@ -24,6 +24,7 @@ import { IBlockRender, initBlockRender } from "./render/blockRender";
 import { ILayout } from "../utils/layout";
 import { DimStyle } from "./walkthrough/WalkthroughTools";
 import { Subscriptions } from "../utils/hooks";
+import { IP20ToyRuntime, createOrUpdateP20ToyRuntime } from "./P20ToyRuntime";
 
 export interface IProgramState {
     native: NativeFunctions | null;
@@ -40,6 +41,7 @@ export interface IProgramState {
     examples: IModelExample[];
     currExampleId: number;
     walkthroughVariant: 'nanogpt' | 'p20';
+    p20ToyRuntime: IP20ToyRuntime | null;
     p20Camera: ICameraPos;
     shape: IModelShape;
     gptGpuModel: IGpuGptModel | null;
@@ -161,6 +163,7 @@ export function initProgramState(canvasEl: HTMLCanvasElement, fontAtlasData: IFo
         layout: genGptModelLayout(shape),
         currExampleId: -1,
         walkthroughVariant: 'nanogpt',
+        p20ToyRuntime: null,
         p20Camera,
         mainExample: {
             name: 'nano-gpt',
@@ -253,8 +256,12 @@ export function runProgram(view: IRenderView, state: IProgramState) {
     }
 
     // generate the base model, incorporating the gpu-side model if available
+    if (state.walkthroughVariant === 'p20') {
+        state.p20ToyRuntime = createOrUpdateP20ToyRuntime(state.render.gl, state.shape, state.p20ToyRuntime);
+    }
+
     state.layout = state.walkthroughVariant === 'p20'
-        ? genP20ModelLayout(state.shape, state.jsGptModel)
+        ? genP20ModelLayout(state.shape, state.jsGptModel, new Vec3(0, 0, 0), state.p20ToyRuntime)
         : genGptModelLayout(state.shape, state.jsGptModel);
 
     // @TODO: handle different models in the same scene.

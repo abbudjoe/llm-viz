@@ -82,6 +82,18 @@ export function drawDataFlow(state: IProgramState, blk: IBlkDef, destIdx: Vec3, 
     } else if (blk.deps.special === BlKDepSpecial.Attention) {
         bb = drawAttention(dataFlowArgs);
 
+    } else if (blk.deps.special === BlKDepSpecial.P20PackedProjection) {
+        bb = drawP20PackedProjection(dataFlowArgs);
+
+    } else if (blk.deps.special === BlKDepSpecial.P20StateUpdate) {
+        bb = drawP20StateUpdate(dataFlowArgs);
+
+    } else if (blk.deps.special === BlKDepSpecial.P20Readout) {
+        bb = drawP20Readout(dataFlowArgs);
+
+    } else if (blk.deps.special === BlKDepSpecial.P20ResidualMix) {
+        bb = drawP20ResidualMix(dataFlowArgs);
+
     } else if (blk.deps.special === BlKDepSpecial.Gelu) {
         bb = drawGeluActivation(dataFlowArgs);
 
@@ -312,6 +324,80 @@ export function drawOLMatrixMul(args: IDataFlowArgs) {
     });
 
     return drawMaths(args, center, textBlock);
+}
+
+function p20LaneName(blk: IBlkDef, idx: number) {
+    let C = Math.max(1, Math.floor(blk.cx / 4));
+    let lane = Math.floor(idx / C);
+    if (lane === 0) return 'update gate';
+    if (lane === 1) return 'rotary angle';
+    if (lane === 2) return 'candidate';
+    return 'read gate';
+}
+
+function drawP20PackedProjection(args: IDataFlowArgs) {
+    let { center, mtx, blk, destIdx } = args;
+    let lane = p20LaneName(blk, destIdx.x);
+    let fontOpts = { color: opColor, mtx, size: 15 };
+    let textBlock = mkTextBlock({
+        opts: fontOpts,
+        subs: [
+            { text: `${lane}: ` },
+            { cellX: 4, cellY: 1, color: weightSrcColor },
+            { text: ' dot ' },
+            { cellX: 1, cellY: 4, color: workingSrcColor },
+            { text: ' + bias' },
+        ],
+    });
+    return drawMaths(args, center, textBlock, [7, 7, 7, 7]);
+}
+
+function drawP20StateUpdate(args: IDataFlowArgs) {
+    let { center, mtx, blk, destIdx } = args;
+    let C = Math.max(1, Math.floor(blk.cx / 4));
+    let lane = Math.floor(destIdx.x / C);
+    let label = lane === 0 ? 'state' : lane === 1 ? 'rotated prev' : lane === 2 ? 'candidate' : 'read-gated state';
+    let fontOpts = { color: opColor, mtx, size: 14 };
+    let formula = lane === 0
+        ? 's_t = g * rotate(s_prev, theta) + (1-g) * cand'
+        : lane === 1
+        ? 'rotate prior state by token angle theta'
+        : lane === 2
+        ? 'cand = tanh(candidate slot)'
+        : 'emit = read_gate * s_t';
+    let textBlock = mkTextBlock({
+        opts: fontOpts,
+        subs: [
+            { text: `${label}: ${formula}` },
+        ],
+    });
+    return drawMaths(args, center, textBlock, [7, 7, 7, 7]);
+}
+
+function drawP20Readout(args: IDataFlowArgs) {
+    let { center, mtx } = args;
+    let fontOpts = { color: opColor, mtx, size: 15 };
+    let textBlock = mkTextBlock({
+        opts: fontOpts,
+        subs: [
+            { text: 'readout = W_out dot ' },
+            { cellX: 4, cellY: 1, color: workingSrcColor },
+            { text: ' + bias' },
+        ],
+    });
+    return drawMaths(args, center, textBlock, [7, 7, 7, 7]);
+}
+
+function drawP20ResidualMix(args: IDataFlowArgs) {
+    let { center, mtx } = args;
+    let fontOpts = { color: opColor, mtx, size: 15 };
+    let textBlock = mkTextBlock({
+        opts: fontOpts,
+        subs: [
+            { text: 'residual_out = residual_in + 0.45 * p20_readout' },
+        ],
+    });
+    return drawMaths(args, center, textBlock, [7, 7, 7, 7]);
 }
 
 export function drawRoundedRect(state: IRenderState, tl: Vec3, br: Vec3, color: Vec4, mtx: Mat4f, radius: number) {

@@ -30,8 +30,9 @@ This visualization keeps the tiny nanoGPT dimensions so the original chapter-by-
 usable. The real Fractal P20 result we have been discussing is around 9.87M parameters; this browser scene
 is showing the insertion contract, not the full parameter scale.
 
-The live numeric execution is still the bundled nanoGPT model. The P20-specific seam, control, and hybrid-block
-chapters are explanatory overlays: they show the intended operation and where it would sit, not computed P20 activations.
+The shared chapters still use the bundled nanoGPT model. The P20 Control chapter now layers in a tiny
+browser-side recurrence, so the seam/control/readout animation can show computed toy gates, angles, state,
+and residual values. It is not the trained research checkpoint; it is a faithful mechanism demo.
 
 The ablation is narrower than "replace the transformer." It asks whether the feed-forward side of selected
 blocks can be made more stateful by using a small rotary gated recurrent update primitive. That primitive

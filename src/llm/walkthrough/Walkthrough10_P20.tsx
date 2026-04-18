@@ -1,6 +1,7 @@
 import { Vec3 } from "@/src/utils/vector";
 import { drawDataFlow } from "../components/DataFlow";
 import { drawDependences } from "../Interaction";
+import { drawP20ToyScan } from "../components/P20ToyViz";
 import { Phase } from "./Walkthrough";
 import { commentary, DimStyle, IWalkthroughArgs, setInitialCamera } from "./WalkthroughTools";
 import { processUpTo, startProcessBefore } from "./Walkthrough00_Intro";
@@ -37,9 +38,9 @@ The architectural change happens at the feed-forward seam. In nanoGPT this is a 
 and project MLP. In the P20 ablation, that seam becomes a ${c_blockRef('rotary gated recurrent state update', block.mlpAct)}
 with a compact state highway.
 
-What you are seeing here is a calculation sketch. The arrows and highlights reuse the existing nanoGPT
-dependency visualizer so the chapter can animate smoothly. They are not real P20 activations produced by
-a browser-side recurrent kernel.
+This chapter now runs a tiny browser-side P20 calculation for the visualized seam. It is still a toy
+mechanism, not the trained 9.87M research checkpoint, but the gates, angles, state, readout, and residual
+values shown here are computed live from the toy recurrence.
 `;
     breakAfter();
 
@@ -67,6 +68,7 @@ rotary angles, candidate state values, and readout gates in one place.
         block.mlpFc.highlight = 0.9;
         drawDependences(state, block.mlpFc, new Vec3(3, 8, 0));
         drawDataFlow(state, block.mlpFc, new Vec3(3, 8, 0), new Vec3(20, -12, 0));
+        drawP20ToyScan(state, t1_projection.t * 0.25);
     }
 
     commentary(wt)`
@@ -81,6 +83,7 @@ as a completely independent feed-forward calculation.
         block.mlpAct.highlight = 1.0;
         block.mlpResult.highlight = 0.6;
         drawDataFlow(state, block.mlpAct, new Vec3(8, 16, 0), new Vec3(block.mlpAct.cx / 2, -16, 0));
+        drawP20ToyScan(state, 0.25 + t2_update.t * 0.35);
     }
 
     commentary(wt)`
@@ -96,6 +99,7 @@ head still sees an ordinary residual vector.
         block.mlpResult.highlight = 1.0;
         block.mlpResidual.highlight = 0.9;
         drawDataFlow(state, block.mlpResult, new Vec3(3, 8, 0), new Vec3(block.mlpResult.cx / 2, -16, 0));
+        drawP20ToyScan(state, 0.6 + t3_readout.t * 0.25);
     }
 
     commentary(wt)`
@@ -112,5 +116,6 @@ a plain MLP does not provide.
         for (let cube of p20Blocks) {
             cube.highlight = Math.max(cube.highlight, 0.35);
         }
+        drawP20ToyScan(state, t4_processAll.t);
     }
 }

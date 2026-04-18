@@ -63,7 +63,7 @@ export function walkthroughIntro(args: IWalkthroughArgs) {
 
 That means the 3D stack is a teaching diagram, not a parameter-scale rendering of the 9.87M-parameter Fractal research run.
 
-Also important: the browser still runs the original nanoGPT tensors. The P20-specific chapters animate the proposed computation and dataflow placement, but they do not execute a real P20 recurrent kernel yet.
+Also important: the shared nanoGPT chapters still use the original tiny model tensors. The P20 Control chapter adds a separate browser-side toy recurrence so the packed gates, rotary state update, readout, and residual mix can animate with real computed values.
 
 Its goal is still simple: take a sequence of six letters: ${embed(ExampleInputOutput)}
 and sort them in alphabetical order, i.e. to "ABBBCC". That shared task makes the architectural difference easier to see.`
