@@ -98,7 +98,6 @@ export const Commentary: React.FC = () => {
 
         progState.walkthroughVariant = variant;
         progState.currExampleId = -1;
-        progState.showP20Panel = false;
         progState.camera.desiredCamera = variant === 'p20' ? progState.p20Camera : progState.mainExample.camera;
         wt.phase = Phase.Intro_Intro;
         wt.time = 0;

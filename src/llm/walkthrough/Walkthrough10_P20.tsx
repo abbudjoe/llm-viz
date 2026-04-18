@@ -36,6 +36,10 @@ layer norms, self-attention, projection, final layer norm, and output head.
 The architectural change happens at the feed-forward seam. In nanoGPT this is a plain expand, GELU,
 and project MLP. In the P20 ablation, that seam becomes a ${c_blockRef('rotary gated recurrent state update', block.mlpAct)}
 with a compact state highway.
+
+What you are seeing here is a calculation sketch. The arrows and highlights reuse the existing nanoGPT
+dependency visualizer so the chapter can animate smoothly. They are not real P20 activations produced by
+a browser-side recurrent kernel.
 `;
     breakAfter();
 

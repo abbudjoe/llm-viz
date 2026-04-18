@@ -39,7 +39,6 @@ export interface IProgramState {
     mainExample: IModelExample;
     examples: IModelExample[];
     currExampleId: number;
-    showP20Panel: boolean;
     walkthroughVariant: 'nanogpt' | 'p20';
     p20Camera: ICameraPos;
     shape: IModelShape;
@@ -161,7 +160,6 @@ export function initProgramState(canvasEl: HTMLCanvasElement, fontAtlasData: IFo
         shape: shape,
         layout: genGptModelLayout(shape),
         currExampleId: -1,
-        showP20Panel: false,
         walkthroughVariant: 'nanogpt',
         p20Camera,
         mainExample: {

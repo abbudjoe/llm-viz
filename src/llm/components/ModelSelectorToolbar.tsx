@@ -22,7 +22,6 @@ export const ModelSelectorToolbar: React.FC<{
                 example.enabled = true;
             }
             progState.walkthroughVariant = 'nanogpt';
-            progState.showP20Panel = false;
             progState.currExampleId = egIndex;
             progState.camera.desiredCamera = example.camera;
             progState.markDirty();
@@ -35,7 +34,6 @@ export const ModelSelectorToolbar: React.FC<{
 
     function handleP20Click() {
         progState.walkthroughVariant = 'p20';
-        progState.showP20Panel = false;
         progState.currExampleId = -1;
         progState.camera.desiredCamera = progState.p20Camera;
         progState.markDirty();
