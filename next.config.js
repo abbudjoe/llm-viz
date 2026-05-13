@@ -7,9 +7,7 @@ let withBundleAnalyzer = require("@next/bundle-analyzer")({
 const nextConfig = {
   reactStrictMode: false, // Recommended for the `pages` directory, default in `app`.
   productionBrowserSourceMaps: true,
-  experimental: {
-    appDir: true,
-  },
+  outputFileTracingRoot: __dirname,
   redirects: async () => {
     return [
       {

@@ -91,6 +91,20 @@ export const Commentary: React.FC = () => {
         progState.markDirty();
     }
 
+    function handleVariantClick(variant: 'nanogpt' | 'p20') {
+        if (progState.walkthroughVariant === variant) {
+            return;
+        }
+
+        progState.walkthroughVariant = variant;
+        progState.currExampleId = -1;
+        progState.camera.desiredCamera = variant === 'p20' ? progState.p20Camera : progState.mainExample.camera;
+        wt.phase = Phase.Intro_Intro;
+        wt.time = 0;
+        wt.running = false;
+        progState.markDirty();
+    }
+
     let numTimes = wt.times.length;
 
     let { nodes } = useMemo(() => {
@@ -257,6 +271,20 @@ export const Commentary: React.FC = () => {
     }, [rangeInfo.start, rangeInfo.end, currPos, parasEl, upToDate, guideLayout.height, guideLayout.parentHeight, wt.phase, wt.time]);
 
     return <>
+        <div className={s.variantControls}>
+            <button
+                className={clsx(s.variantBtn, progState.walkthroughVariant === 'nanogpt' && s.variantActive)}
+                onClick={() => handleVariantClick('nanogpt')}
+            >
+                nanoGPT walkthrough
+            </button>
+            <button
+                className={clsx(s.variantBtn, progState.walkthroughVariant === 'p20' && s.variantActive)}
+                onClick={() => handleVariantClick('p20')}
+            >
+                Fractal P20 walkthrough
+            </button>
+        </div>
         <div className={s.chapterControls}>
             <button className={clsx(s.btn, s.prevNextBtn)} onClick={() => handlePhaseDeltaClick(-1)}>
                 <FontAwesomeIcon icon={faChevronLeft} />

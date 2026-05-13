@@ -75,11 +75,14 @@ export const TocDiagram: React.FC<{
     }, [progState.walkthrough, onEnterPhase]);
 
     activeId = activePhase ?? activeId;
+    let isP20Walkthrough = progState.walkthroughVariant === 'p20';
 
     let colors = {
         ln: '#e9f29e',
         multihead: '#f2d59e',
         feedForward: '#9ef2f2',
+        p20: '#a7f3d0',
+        p20State: '#bfdbfe',
         tokEmbed: '#f0a8fc',
         linear: '#a8c3fc',
         softmax: '#a8fcaf',
@@ -107,7 +110,11 @@ export const TocDiagram: React.FC<{
                 { type: ElType.Gap, height: exitGap, gapType: 'exit', arrow: true },
                 { type: ElType.Cell, height: 1, label: 'layer norm', width: widthStd, color: colors.ln, id: 'ln2' },
                 { type: ElType.Gap, height: smallGap, arrow: true },
-                { type: ElType.Cell, height: 2, label: ['feed', 'forward'], width: widthFeedForward, color: colors.feedForward, id: 'feedForward' },
+                { type: ElType.Cell, height: 2, label: isP20Walkthrough ? ['P20 rotary', 'state update'] : ['feed', 'forward'], width: isP20Walkthrough ? widthFeedForward + 1 : widthFeedForward, color: isP20Walkthrough ? colors.p20 : colors.feedForward, id: 'feedForward' },
+                ...(isP20Walkthrough ? [
+                    { type: ElType.Gap, height: smallGap, arrow: true },
+                    { type: ElType.Cell, height: 1.4, label: ['shared', 'state'], width: widthFeedForward, color: colors.p20State, id: 'p20State' },
+                ] as IEl[] : []),
                 { type: ElType.Gap, height: plusGap, gapType: 'add' },
             ] },
             { type: ElType.Gap, height: smallGap, arrow: true },
@@ -129,7 +136,7 @@ export const TocDiagram: React.FC<{
     }
 
     entryGroups.push({ groupName: 'Intro', entries: [] });
-    makeEntry(Phase.Intro_Intro, 'Introduction', []);
+    makeEntry(Phase.Intro_Intro, isP20Walkthrough ? 'P20 Introduction' : 'Introduction', []);
     makeEntry(Phase.Intro_Prelim, 'Preliminaries', []);
 
     entryGroups.push({ groupName: 'Components', entries: [] });
@@ -137,8 +144,11 @@ export const TocDiagram: React.FC<{
     makeEntry(Phase.Input_Detail_LayerNorm, 'Layer Norm', ['ln1', 'ln2', 'lnf']);
     makeEntry(Phase.Input_Detail_SelfAttention, 'Self Attention', ['selfAttend']);
     makeEntry(Phase.Input_Detail_Projection, 'Projection', ['selfAttend']);
-    makeEntry(Phase.Input_Detail_Mlp, 'MLP', ['feedForward']);
-    makeEntry(Phase.Input_Detail_Transformer, 'Transformer', ['transformer']);
+    makeEntry(Phase.Input_Detail_Mlp, isP20Walkthrough ? 'FFN Seam' : 'MLP', ['feedForward']);
+    if (isP20Walkthrough) {
+        makeEntry(Phase.P20_Detail_RecurrentControl, 'P20 Control', ['feedForward', 'p20State'], true);
+    }
+    makeEntry(Phase.Input_Detail_Transformer, isP20Walkthrough ? 'Hybrid Block' : 'Transformer', ['transformer']);
     makeEntry(Phase.Input_Detail_Softmax, 'Softmax', ['softmaxOut']);
     makeEntry(Phase.Input_Detail_Output, 'Output', ['lnf', 'linear', 'softmaxOut'], true);
 

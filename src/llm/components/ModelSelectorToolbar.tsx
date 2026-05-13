@@ -15,12 +15,14 @@ export const ModelSelectorToolbar: React.FC<{
         let example = progState.examples[egIndex] ?? progState.mainExample;
 
         let isEnabled = example.enabled;
-        let isActive = progState.currExampleId === egIndex;
+        let targetVariant: 'nanogpt' | 'p20' = example.variant === 'p20' ? 'p20' : 'nanogpt';
+        let isActive = progState.currExampleId === egIndex && progState.walkthroughVariant === targetVariant;
 
         function handleClick() {
             if (!isEnabled) {
                 example.enabled = true;
             }
+            progState.walkthroughVariant = targetVariant;
             progState.currExampleId = egIndex;
             progState.camera.desiredCamera = example.camera;
             progState.markDirty();
@@ -33,7 +35,11 @@ export const ModelSelectorToolbar: React.FC<{
 
     function onExpandClick() {
         let example = progState.examples[progState.currExampleId] ?? progState.mainExample;
-        progState.camera.desiredCamera = example.camera;
+        progState.camera.desiredCamera = progState.currExampleId >= 0
+            ? example.camera
+            : progState.walkthroughVariant === 'p20'
+            ? progState.p20Camera
+            : example.camera;
         progState.markDirty();
     }
 
@@ -64,6 +70,7 @@ export const ModelSelectorToolbar: React.FC<{
             {makeButton(-1)}
             {makeButton(1)}
             {makeButton(2)}
+            {makeButton(3)}
         </div>
         <div className='ml-2 flex flex-row'>
             <div className={clsx('m-2 p-2 bg-white min-w-[2rem] flex justify-center rounded shadow cursor-pointer hover:bg-blue-300')} onClick={onExpandClick}>

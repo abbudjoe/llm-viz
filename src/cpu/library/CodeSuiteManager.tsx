@@ -41,6 +41,10 @@ export class CodeSuiteManager {
             return suite?.loadPromise!;
         }
 
+        if (typeof window === 'undefined') {
+            return suite.loadPromise ?? Promise.resolve();
+        }
+
         suite.loadPromise ??= this.loadSuite(suite);
         return suite.loadPromise;
     }

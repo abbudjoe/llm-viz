@@ -82,6 +82,18 @@ export function drawDataFlow(state: IProgramState, blk: IBlkDef, destIdx: Vec3, 
     } else if (blk.deps.special === BlKDepSpecial.Attention) {
         bb = drawAttention(dataFlowArgs);
 
+    } else if (blk.deps.special === BlKDepSpecial.P20PackedProjection) {
+        bb = drawP20PackedProjection(dataFlowArgs);
+
+    } else if (blk.deps.special === BlKDepSpecial.P20StateUpdate) {
+        bb = drawP20StateUpdate(dataFlowArgs);
+
+    } else if (blk.deps.special === BlKDepSpecial.P20Readout) {
+        bb = drawP20Readout(dataFlowArgs);
+
+    } else if (blk.deps.special === BlKDepSpecial.P20ResidualMix) {
+        bb = drawP20ResidualMix(dataFlowArgs);
+
     } else if (blk.deps.special === BlKDepSpecial.Gelu) {
         bb = drawGeluActivation(dataFlowArgs);
 
@@ -168,6 +180,10 @@ let workingSrcColor = new Vec4(0.3, 0.7, 0.3, 1);
 let opColor = new Vec4(0.9, 0.9, 0.9, 1);
 let backWhiteColor = new Vec4(0.0, 0.0, 0.0, 1).mul(1.0);
 let nameColor = new Vec4(1.0, 1.0, 1.0, 1);
+let p20CarryColor = new Vec4(0.34, 0.54, 1.0, 0.95);
+let p20RotatedColor = new Vec4(0.82, 0.63, 1.0, 0.95);
+let p20CandidateColor = new Vec4(1.0, 0.72, 0.34, 0.95);
+let p20StateColor = new Vec4(1.0, 0.88, 0.18, 0.98);
 let embedBlockHeight = 30;
 let tokEmbedBlockWidth = 40;
 let posEmbedBlockWidth = 35;
@@ -312,6 +328,98 @@ export function drawOLMatrixMul(args: IDataFlowArgs) {
     });
 
     return drawMaths(args, center, textBlock);
+}
+
+function p20LaneName(blk: IBlkDef, idx: number) {
+    let C = Math.max(1, Math.floor(blk.cx / 4));
+    let lane = Math.floor(idx / C);
+    if (lane === 0) return 'update gate';
+    if (lane === 1) return 'rotary angle';
+    if (lane === 2) return 'candidate';
+    return 'read gate';
+}
+
+function drawP20PackedProjection(args: IDataFlowArgs) {
+    let { center, mtx, blk, destIdx } = args;
+    let lane = p20LaneName(blk, destIdx.x);
+    let fontOpts = { color: opColor, mtx, size: 15 };
+    let textBlock = mkTextBlock({
+        opts: fontOpts,
+        subs: [
+            { text: `${lane}: ` },
+            { cellX: 4, cellY: 1, color: weightSrcColor },
+            { text: ' dot ' },
+            { cellX: 1, cellY: 4, color: workingSrcColor },
+            { text: ' + bias' },
+        ],
+    });
+    return drawMaths(args, center, textBlock, [7, 7, 7, 7]);
+}
+
+function drawP20StateUpdate(args: IDataFlowArgs) {
+    let { center, mtx, blk, destIdx } = args;
+    let C = Math.max(1, Math.floor(blk.cx / 4));
+    let lane = Math.floor(destIdx.x / C);
+    let label = lane === 0 ? 'state' : lane === 1 ? 'rotated prev' : lane === 2 ? 'candidate' : 'read-gated state';
+    let fontOpts = { color: opColor, mtx, size: 14 };
+    let subs = lane === 0
+        ? [
+            { text: 'state: read ' },
+            { cellX: 1, cellY: 1, color: p20CarryColor },
+            { text: ' s[t-1], rotate -> ' },
+            { cellX: 1, cellY: 1, color: p20RotatedColor },
+            { text: ', gate-mix with cand ' },
+            { cellX: 1, cellY: 1, color: p20CandidateColor },
+            { text: ' -> write ' },
+            { cellX: 1, cellY: 1, color: p20StateColor },
+            { text: ' s[t] carry' },
+        ]
+        : lane === 1
+        ? [
+            { text: `${label}: rotate ` },
+            { cellX: 1, cellY: 1, color: p20CarryColor },
+            { text: ' s[t-1] by token angle theta' },
+        ]
+        : lane === 2
+        ? [
+            { text: `${label}: tanh(candidate slot) makes fresh state proposal` },
+        ]
+        : [
+            { text: `${label}: read_gate * ` },
+            { cellX: 1, cellY: 1, color: p20StateColor },
+            { text: ' s[t] for residual readout' },
+        ];
+    let textBlock = mkTextBlock({
+        opts: fontOpts,
+        subs,
+    });
+    return drawMaths(args, center, textBlock, [7, 7, 7, 7]);
+}
+
+function drawP20Readout(args: IDataFlowArgs) {
+    let { center, mtx } = args;
+    let fontOpts = { color: opColor, mtx, size: 15 };
+    let textBlock = mkTextBlock({
+        opts: fontOpts,
+        subs: [
+            { text: 'readout = W_out dot ' },
+            { cellX: 4, cellY: 1, color: workingSrcColor },
+            { text: ' + bias' },
+        ],
+    });
+    return drawMaths(args, center, textBlock, [7, 7, 7, 7]);
+}
+
+function drawP20ResidualMix(args: IDataFlowArgs) {
+    let { center, mtx } = args;
+    let fontOpts = { color: opColor, mtx, size: 15 };
+    let textBlock = mkTextBlock({
+        opts: fontOpts,
+        subs: [
+            { text: 'residual_out = residual_in + 0.45 * p20_readout' },
+        ],
+    });
+    return drawMaths(args, center, textBlock, [7, 7, 7, 7]);
 }
 
 export function drawRoundedRect(state: IRenderState, tl: Vec3, br: Vec3, color: Vec4, mtx: Mat4f, radius: number) {

@@ -11,7 +11,27 @@ export function walkthrough08_Transformer(args: IWalkthroughArgs) {
 
     setInitialCamera(state, new Vec3(-135.531, 0.000, -353.905), new Vec3(291.100, 13.600, 5.706));
 
-    let c0 = commentary(wt, null, 0)`
+    if (state.walkthroughVariant === 'p20') {
+        commentary(wt, null, 0)`
+
+And that's a complete P20-style hybrid block!
+
+The shell is intentionally transformer-like: residual stream, layer norm, self-attention, projection,
+residual addition, and the final output path are still present. That is why this architecture is close
+enough to nanoGPT to compare directly in a controlled ablation.
+
+The difference is the role of the feed-forward side. Instead of only applying an independent MLP to each
+token column, P20 uses a rotary gated recurrent state update to carry a compact state through the sequence
+and then write a readout back into the residual stream.
+
+So the similarity is high at the block boundary, and lower inside the FFN seam. That is the useful mental
+model: P20 is a transformer-shaped LM with a recurrent-control substitute for part of the ordinary MLP
+capacity, not a full attention-free architecture in this visualization.
+`;
+        return;
+    }
+
+    commentary(wt, null, 0)`
 
 And that's a complete transformer block!
 
