@@ -15,34 +15,31 @@ export const ModelSelectorToolbar: React.FC<{
         let example = progState.examples[egIndex] ?? progState.mainExample;
 
         let isEnabled = example.enabled;
-        let isActive = progState.currExampleId === egIndex;
+        let targetVariant: 'nanogpt' | 'p20' = example.variant === 'p20' ? 'p20' : 'nanogpt';
+        let isActive = progState.currExampleId === egIndex && progState.walkthroughVariant === targetVariant;
 
         function handleClick() {
             if (!isEnabled) {
                 example.enabled = true;
             }
-            progState.walkthroughVariant = 'nanogpt';
+            progState.walkthroughVariant = targetVariant;
             progState.currExampleId = egIndex;
             progState.camera.desiredCamera = example.camera;
             progState.markDirty();
         }
 
-        return <div className={clsx('m-2 p-2 rounded shadow cursor-pointer hover:bg-blue-300', isActive && progState.walkthroughVariant === 'nanogpt' ? 'bg-blue-200' : 'bg-white')} onClick={handleClick}>
+        return <div className={clsx('m-2 p-2 rounded shadow cursor-pointer hover:bg-blue-300', isActive ? 'bg-blue-200' : 'bg-white')} onClick={handleClick}>
             {example.name}
         </div>;
     }
 
-    function handleP20Click() {
-        progState.walkthroughVariant = 'p20';
-        progState.currExampleId = -1;
-        progState.camera.desiredCamera = progState.p20Camera;
-        progState.markDirty();
-    }
-
     function onExpandClick() {
-        progState.camera.desiredCamera = progState.walkthroughVariant === 'p20'
+        let example = progState.examples[progState.currExampleId] ?? progState.mainExample;
+        progState.camera.desiredCamera = progState.currExampleId >= 0
+            ? example.camera
+            : progState.walkthroughVariant === 'p20'
             ? progState.p20Camera
-            : (progState.examples[progState.currExampleId] ?? progState.mainExample).camera;
+            : example.camera;
         progState.markDirty();
     }
 
@@ -73,12 +70,7 @@ export const ModelSelectorToolbar: React.FC<{
             {makeButton(-1)}
             {makeButton(1)}
             {makeButton(2)}
-            <div
-                className={clsx('m-2 p-2 rounded shadow cursor-pointer hover:bg-blue-300', progState.walkthroughVariant === 'p20' ? 'bg-blue-200' : 'bg-white')}
-                onClick={handleP20Click}
-            >
-                Fractal P20
-            </div>
+            {makeButton(3)}
         </div>
         <div className='ml-2 flex flex-row'>
             <div className={clsx('m-2 p-2 bg-white min-w-[2rem] flex justify-center rounded shadow cursor-pointer hover:bg-blue-300')} onClick={onExpandClick}>

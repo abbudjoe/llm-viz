@@ -13,7 +13,12 @@ import { lineHeight } from "./TextLayout";
 import { IColorMix } from "../Annotations";
 import { clamp } from "@/src/utils/data";
 
-export function drawModelCard(state: IProgramState, layout: IGptModelLayout, title: string, offset: Vec3) {
+export interface IModelCardOpts {
+    weightCountText?: string;
+    subtitle?: string;
+}
+
+export function drawModelCard(state: IProgramState, layout: IGptModelLayout, title: string, offset: Vec3, opts: IModelCardOpts = {}) {
     let { render } = state;
     let { camPos } = cameraToMatrixView(state.camera);
     let dist = camPos.dist(new Vec3(0, 0, -30)); //.add(offset));
@@ -60,7 +65,7 @@ export function drawModelCard(state: IProgramState, layout: IGptModelLayout, tit
     // layout.weightCount = 150000000000;
 
     let nParamsText = `n_params = `;
-    let weightCountText = numberToCommaSep(layout.weightCount);
+    let weightCountText = opts.weightCountText ?? numberToCommaSep(layout.weightCount);
 
     let weightSize = 8;
     let weightTitleW = measureTextWidth(render.modelFontBuf, nParamsText, paramFontScale);
@@ -73,6 +78,12 @@ export function drawModelCard(state: IProgramState, layout: IGptModelLayout, tit
 
     writeTextToBuffer(render.modelFontBuf, nParamsText, titleColor, weightX, paramOff - paramFontScale / 2, paramFontScale, mtx);
     writeTextToBuffer(render.modelFontBuf, weightCountText, titleColor, weightX + weightTitleW, paramOff - weightSize / 2, weightSize, mtx);
+
+    if (opts.subtitle) {
+        let subtitleSize = 3.6;
+        let subtitleW = measureTextWidth(render.modelFontBuf, opts.subtitle, subtitleSize);
+        writeTextToBuffer(render.modelFontBuf, opts.subtitle, titleColor.mul(0.72), midX - subtitleW / 2, br.y - subtitleSize - 1.5, subtitleSize, mtx);
+    }
     // addParam("C (channels) = ", C.toString(), dimStyleColor(DimStyle.C));
     // addParam("T (time) = ", T.toString(), dimStyleColor(DimStyle.T));
     // addParam("B (batches) = ", B.toString(), dimStyleColor(DimStyle.B));

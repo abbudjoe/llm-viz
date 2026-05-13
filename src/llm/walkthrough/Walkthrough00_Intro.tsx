@@ -59,11 +59,11 @@ export function walkthroughIntro(args: IWalkthroughArgs) {
     setInitialCamera(state, new Vec3(184.744, 0.000, -636.820), new Vec3(296.000, 16.000, 13.500));
 
     let c0 = state.walkthroughVariant === 'p20'
-        ? commentary(wt, null, 0)`Welcome to the P20 walkthrough! This view deliberately keeps the same toy browser task and nanoGPT-scale geometry, but uses it to show where a rotary gated recurrent state update primitive fits inside a transformer-shaped language model.
+        ? commentary(wt, null, 0)`Welcome to the P20 / RGRP walkthrough! This view deliberately keeps the same toy browser task and nanoGPT-scale geometry, but uses it to show where a rotary gated recurrent state update primitive fits inside a transformer-shaped language model.
 
-That means the 3D stack is a teaching diagram, not a parameter-scale rendering of the 9.87M-parameter Fractal research run.
+That means the 3D stack is a teaching diagram, not a parameter-scale rendering of the current 50M research rung.
 
-Also important: the shared nanoGPT chapters still use the original tiny model tensors. The P20 Control chapter adds a separate browser-side toy recurrence so the packed gates, rotary state update, readout, and residual mix can animate with real computed values.
+Also important: the shared nanoGPT chapters still use the original tiny model tensors. The P20 Control chapter adds a separate browser-side toy recurrence so the packed gates, rotary state update, readout, and residual mix can animate with real computed values, plus a 50M controller inset that shows the current d_model=448 configuration.
 
 Its goal is still simple: take a sequence of six letters: ${embed(ExampleInputOutput)}
 and sort them in alphabetical order, i.e. to "ABBBCC". That shared task makes the architectural difference easier to see.`

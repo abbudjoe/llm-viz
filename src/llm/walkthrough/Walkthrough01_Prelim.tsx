@@ -22,17 +22,18 @@ export function walkthrough01_Prelim(args: IWalkthroughArgs) {
         commentary(wt, null, 0)`
 Before we delve into the P20-specific seam, let's level-set the comparison.
 
-P20 is deliberately close to nanoGPT at the outside: token embeddings, positional information,
+P20 / RGRP is deliberately close to nanoGPT at the outside: token embeddings, positional information,
 layer normalization, causal self-attention, residual additions, final normalization, and the language-model
 head all remain transformer-shaped.
 
 This visualization keeps the tiny nanoGPT dimensions so the original chapter-by-chapter animations remain
-usable. The real Fractal P20 result we have been discussing is around 9.87M parameters; this browser scene
-is showing the insertion contract, not the full parameter scale.
+usable. The current scaling question is happening around a 50M-parameter model with d_model=448; this
+browser scene is showing the insertion contract, not drawing every full-scale tensor.
 
 The shared chapters still use the bundled nanoGPT model. The P20 Control chapter now layers in a tiny
 browser-side recurrence, so the seam/control/readout animation can show computed toy gates, angles, state,
-and residual values. It is not the trained research checkpoint; it is a faithful mechanism demo.
+and residual values. It also includes a scale-faithful inset for the current 50M controller configuration:
+packed 448 -> 1,568 controls, four 112-wide state blocks, and 64-padded rotary-pair tiles.
 
 The ablation is narrower than "replace the transformer." It asks whether the feed-forward side of selected
 blocks can be made more stateful by using a small rotary gated recurrent update primitive. That primitive

@@ -1,7 +1,7 @@
 import { genModelViewMatrices, ICamera, ICameraPos, updateCamera } from "./Camera";
 import { drawAllArrows } from "./components/Arrow";
 import { drawBlockLabels } from "./components/SectionLabels";
-import { drawModelCard } from "./components/ModelCard";
+import { drawModelCard, IModelCardOpts } from "./components/ModelCard";
 import { IGptModelLink, IGpuGptModel, IModelShape } from "./GptModel";
 import { genGptModelLayout, IBlkDef, IGptModelLayout } from "./GptModelLayout";
 import { genP20ModelLayout } from "./P20ModelLayout";
@@ -57,11 +57,13 @@ export interface IModelExample {
     shape: IModelShape;
     enabled: boolean;
     variant?: 'gpt' | 'p20';
+    p20LayoutMode?: 'toy-walkthrough' | 'parcae-rgrp-control';
     layout?: IGptModelLayout;
     blockRender: IBlockRender;
     offset: Vec3;
     modelCardOffset: Vec3;
     camera?: ICameraPos;
+    modelCard?: IModelCardOpts;
 }
 
 export interface IMouseState {
@@ -143,6 +145,16 @@ export function initProgramState(canvasEl: HTMLCanvasElement, fontAtlasData: IFo
         vocabSize: 50257,
     };
 
+    let p20Research50MShape: IModelShape = {
+        B: 1,
+        T: 1024,
+        C: 448,
+        nHeads: 8,
+        A: 448 / 8,
+        nBlocks: 8,
+        vocabSize: 32000,
+    };
+
     function makeCamera(center: Vec3, angle: Vec3): ICameraPos {
         return { center, angle };
     }
@@ -182,6 +194,20 @@ export function initProgramState(canvasEl: HTMLCanvasElement, fontAtlasData: IFo
             modelCardOffset: delta.mul(-2.0),
             blockRender: initBlockRender(render?.ctx ?? null),
             camera: makeCamera(new Vec3(-65141.321, 0.000, -69843.439), new Vec3(224.459, 24.501, 1574.240)),
+        }, {
+            name: 'Fractal P20 50M',
+            enabled: true,
+            variant: 'p20',
+            p20LayoutMode: 'parcae-rgrp-control',
+            shape: p20Research50MShape,
+            offset: delta.mul(8),
+            modelCardOffset: delta.mul(-1.25),
+            blockRender: initBlockRender(render?.ctx ?? null),
+            camera: makeCamera(new Vec3(53000.000, 0.000, -46500.000), new Vec3(226.000, 23.000, 1120.000)),
+            modelCard: {
+                weightCountText: '~50,000,000',
+                subtitle: '8L d448 + Parcae loop + full-width RGRP',
+            },
         }, {
             name: 'GPT-2 (XL)',
             enabled: true,
@@ -269,7 +295,7 @@ export function runProgram(view: IRenderView, state: IProgramState) {
     for (let example of state.examples) {
         if (example.enabled && !example.layout) {
             let layout = example.variant === 'p20'
-                ? genP20ModelLayout(example.shape, null, example.offset)
+                ? genP20ModelLayout(example.shape, null, example.offset, null, example.p20LayoutMode ?? 'toy-walkthrough')
                 : genGptModelLayout(example.shape, null, example.offset);
             example.layout = layout;
         }
@@ -295,12 +321,12 @@ export function runProgram(view: IRenderView, state: IProgramState) {
     // these will get modified by the walkthrough (stored where?)
     drawAllArrows(state.render, state.layout);
 
-    drawModelCard(state, state.layout, state.walkthroughVariant === 'p20' ? 'P20 seam demo' : 'nano-gpt', new Vec3());
+    drawModelCard(state, state.layout, state.walkthroughVariant === 'p20' ? 'P20 walkthrough scaffold' : 'nano-gpt', new Vec3());
     // drawTokens(state.render, state.layout, state.display);
 
     for (let example of state.examples) {
         if (example.enabled && example.layout) {
-            drawModelCard(state, example.layout, example.name, example.offset.add(example.modelCardOffset));
+            drawModelCard(state, example.layout, example.name, example.offset.add(example.modelCardOffset), example.modelCard);
         }
     }
 

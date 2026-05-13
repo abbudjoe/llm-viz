@@ -2,7 +2,7 @@ import { Dim, Vec3, Vec4 } from "@/src/utils/vector";
 import { addSourceDestCurveLine, drawTextOnModel, splitGridForHighlight, TextAlignHoriz, TextAlignVert } from "../Annotations";
 import { drawDataFlow } from "../components/DataFlow";
 import { drawDependences } from "../Interaction";
-import { drawP20ToyScan } from "../components/P20ToyViz";
+import { drawP2050MController, drawP20ToyScan } from "../components/P20ToyViz";
 import { cellPosition, IBlkDef } from "../GptModelLayout";
 import { IP20ModelLayout } from "../P20ModelLayout";
 import { addLine } from "../render/lineRender";
@@ -133,16 +133,17 @@ export function walkthrough10_P20(args: IWalkthroughArgs) {
     setInitialCamera(state, new Vec3(-160.000, 0.000, -720.000), new Vec3(289.500, -8.000, 3.600));
 
     commentary(wt)`
-P20 is not a totally different animal from nanoGPT. It keeps the same token embedding, residual stream,
-layer norms, self-attention, projection, final layer norm, and output head.
+P20 / RGRP is not a totally different animal from nanoGPT. It keeps the same token embedding, residual
+stream, layer norms, self-attention, projection, final layer norm, and output head.
 
 The architectural change happens at the feed-forward seam. In nanoGPT this is a plain expand, GELU,
 and project MLP. In the P20 ablation, that seam becomes a ${c_blockRef('rotary gated recurrent state update', block.mlpAct)}
-with a compact state highway.
+with a compact state highway. The 3D model is still the tiny browser teaching scaffold; the scale inset
+shows the current 50M controller shape we have actually been discussing.
 
 This chapter now runs a tiny browser-side P20 calculation for the visualized seam. It is still a toy
-mechanism, not the trained 9.87M research checkpoint, but the gates, angles, state, readout, and residual
-values shown here are computed live from the toy recurrence.
+mechanism, but the gates, angles, state, readout, and residual values shown here are computed live from
+the toy recurrence.
 `;
     breakAfter();
 
@@ -152,6 +153,7 @@ values shown here are computed live from the toy recurrence.
             cube.highlight = Math.max(cube.highlight, 0.9 * t0_focus.t);
         }
         block.mlpLabel.visible = t0_focus.t;
+        drawP2050MController(state, t0_focus.t * 0.15, 'all');
     }
 
     cleanup(t0_focus);
@@ -159,7 +161,8 @@ values shown here are computed live from the toy recurrence.
     commentary(wt)`
 The incoming ${c_dimRef('C', DimStyle.C)}-channel residual vector first passes through one packed projection.
 That projection is deliberately doing more than a normal MLP input matrix: it creates update gates,
-rotary angles, candidate state values, and readout gates in one place.
+rotary angles, candidate state values, and readout gates in one place. At the 50M rung this means a
+448-wide token vector is projected into 1,568 controller lanes.
 `;
     breakAfter();
 
@@ -175,7 +178,8 @@ rotary angles, candidate state values, and readout gates in one place.
 Those projected controls update a recurrent state. The key distinction from the vanilla MLP is the carry:
 P20 reads the previous token's ${c_blockRef('s[t-1] state', stateRail ?? block.mlpAct)}, rotates it by the
 current token's angle, gate-mixes it with a fresh candidate, and writes the result back as s[t] for the
-next token.
+next token. In the current 50M configuration that state is still full width: 448 channels split into four
+block-diagonal groups of 112.
 `;
     breakAfter();
 
@@ -193,7 +197,8 @@ next token.
     commentary(wt)`
 After the recurrent update, P20 emits a readout back into the normal residual stream. That is why the
 rest of the model can stay transformer-like: attention still does explicit token mixing, and the output
-head still sees an ordinary residual vector.
+head still sees an ordinary residual vector. The same carry that helps quality is also the CUDA pain point:
+the recurrent scan scales through padded state-block tiles rather than the highly tuned attention/MLP path.
 `;
     breakAfter();
 
@@ -210,9 +215,9 @@ head still sees an ordinary residual vector.
     }
 
     commentary(wt)`
-In short: P20 is closest to nanoGPT at the shell, and different at the FFN-side computation. The ablation
-asks whether a small recurrent-control primitive can buy some of the useful depth or state behavior that
-a plain MLP does not provide.
+In short: P20 is closest to nanoGPT at the shell, and different at the FFN-side computation. The live
+question is whether this full-width controller should remain full-width at 50M, or whether the controller
+needs a bottleneck/shared-state contract before it can scale cleanly.
 `;
     breakAfter();
 
@@ -223,6 +228,7 @@ a plain MLP does not provide.
     if (showProjectionOverlay) {
         drawDependences(state, block.mlpFc, new Vec3(3, 8, 0));
         drawDataFlow(state, block.mlpFc, new Vec3(3, 8, 0), new Vec3(20, -12, 0));
+        drawP2050MController(state, t1_projection.t * 0.25, 'projection');
         drawP20ToyScan(state, t1_projection.t * 0.25);
     }
     if (showUpdateOverlay) {
@@ -230,6 +236,7 @@ a plain MLP does not provide.
         if (stateRail) {
             drawStateHighwayUpdate(layout, state, block, stateRail, 0.25 + t2_update.t * 0.35);
         }
+        drawP2050MController(state, 0.25 + t2_update.t * 0.35, 'state');
         drawP20ToyScan(state, 0.25 + t2_update.t * 0.35);
     }
     if (showReadoutOverlay) {
@@ -237,6 +244,7 @@ a plain MLP does not provide.
         if (stateRail) {
             drawStateHighwayReadout(layout, state, block, stateRail, 0.6 + t3_readout.t * 0.25);
         }
+        drawP2050MController(state, 0.6 + t3_readout.t * 0.25, 'readout');
         drawP20ToyScan(state, 0.6 + t3_readout.t * 0.25);
     }
 
@@ -249,6 +257,7 @@ a plain MLP does not provide.
         if (stateRail && showFullScanOverlay) {
             drawStateHighwayUpdate(layout, state, block, stateRail, t4_processAll.t);
             drawStateHighwayReadout(layout, state, block, stateRail, t4_processAll.t);
+            drawP2050MController(state, t4_processAll.t, 'all');
             drawP20ToyScan(state, t4_processAll.t);
         }
     }
